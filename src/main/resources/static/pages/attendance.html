@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <h1>Attendance</h1>
+    <button id="checkinBtn">Check In</button>
+    <button id="checkoutBtn">Check Out</button>
+    <div id="attendanceHistory"></div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('hr_user'));
+        if (!user) window.location.href = "login.html";
+
+        document.getElementById('checkinBtn').onclick = async () => {
+            const res = await fetch(`/api/attendance/checkin?employeeId=${user.employeeId}`, { method: 'POST' });
+            alert(res.ok ? 'Checked In!' : 'Failed to Check In');
+        };
+
+        document.getElementById('checkoutBtn').onclick = async () => {
+            const res = await fetch(`/api/attendance/checkout?employeeId=${user.employeeId}`, { method: 'POST' });
+            alert(res.ok ? 'Checked Out!' : 'Failed to Check Out');
+        };
+
+        async function loadHistory() {
+            const res = await fetch(`/api/attendance/${user.employeeId}`);
+            const history = await res.json();
+            document.getElementById('attendanceHistory').innerHTML = history.map(h => `<p>${h.date} - ${h.status}</p>`).join('');
+        }
+
+        loadHistory();
+    </script>
+</body>
+</html>

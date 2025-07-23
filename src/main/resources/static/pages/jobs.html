@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Openings</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <h1>Available Job Postings</h1>
+    <div id="jobList"></div>
+
+    <script>
+        async function loadJobs() {
+            const res = await fetch('/api/recruitment/posts');
+            const jobs = await res.json();
+            document.getElementById('jobList').innerHTML = jobs.map(j => 
+                `<div>
+                    <h3>${j.title}</h3>
+                    <p>${j.description}</p>
+                    <button onclick="apply(${j.id})">Apply</button>
+                 </div>`).join('');
+        }
+
+        async function apply(jobId) {
+            const user = JSON.parse(localStorage.getItem('hr_user'));
+            if (!user) return alert("Login first!");
+            await fetch(`/api/recruitment/apply?jobId=${jobId}&employeeId=${user.employeeId}`, { method: 'POST' });
+            alert("Applied successfully!");
+        }
+
+        loadJobs();
+    </script>
+</body>
+</html>

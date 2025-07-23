@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Add / Edit Employee</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<h1 id="pageTitle">Add Employee</h1>
+
+<form id="empForm">
+  <input type="hidden" name="id" id="empId">
+
+  <label>Name:
+    <input type="text" id="name" required>
+  </label><br>
+
+  <label>Email:
+    <input type="email" id="email">
+  </label><br>
+
+  <label>Department:
+    <input type="text" id="department">
+  </label><br>
+
+  <label>Base Salary:
+    <input type="number" step="0.01" id="baseSalary">
+  </label><br>
+
+  <label>Join Date:
+    <input type="date" id="joinDate">
+  </label><br>
+
+  <label>Manager ID:
+    <input type="number" id="managerId">
+  </label><br><br>
+
+  <button type="submit" id="saveBtn">Save</button>
+  <button type="button" onclick="cancel()">Cancel</button>
+</form>
+
+<script src="/js/hr-auth.js"></script>
+<script>
+const user = HR.requireLogin();
+if (!HR.hasRole('ADMIN','MANAGER')) {
+  alert('You do not have permission to manage employees.');
+  window.location.href='/pages/employees.html';
+}
+
+function getParam(name) {
+  return new URLSearchParams(window.location.search).get(name);
+}
+const editId = getParam('id');
+if (editId) {
+  document.getElementById('pageTitle').textContent = 'Edit Employee #' + editId;
+  loadEmployee(editId);
+}
+
+async function loadEmployee(id) {
+  const res = await fetch(`/api/employees/${id}`);
+  if (!res.ok) { alert('Failed to load employee'); return; }
+  const e = await res.json();
+  document.getElementById('empId').value = e.id ?? '';
+  document.getElementById('name').value = e.name ?? '';
+  document.getElementById('email').value = e.email ?? '';
+  document.getElementById('department').value = e.department ?? '';
+  document.getElementById('baseSalary').value = e.baseSalary ?? '';
+  document.getElementById('joinDate').value = e.joinDate ?? '';
+  document.getElementById('managerId').value = e.managerId ?? '';
+}
+
+document.getElementById('empForm').addEventListener('submit', async (ev)=>{
+  ev.preventDefault();
+  const payload = {
+    name: document.getElementById('name').value.trim(),
+    email: document.getElementById('email').value.trim(),
+    department: document.getElementById('department').value.trim(),
+    baseSalary: parseFloat(document.getElementById('baseSalary').value) || null,
+    joinDate: document.getElementById('joinDate').value || null,
+    managerId: parseInt(document.getElementById('managerId').value) || null
+  };
+  let url = '/api/employees';
+  let method = 'POST';
+  if (editId) {
+    url += `/${editId}`;
+    method = 'PUT';
+  }
+  const res = await fetch(url, {
+    method,
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(payload)
+  });
+  if (res.ok) {
+    alert('Saved!');
+    location.href='/pages/employees.html';
+  } else {
+    alert('Save failed.');
+  }
+});
+
+function cancel(){
+  window.location.href='/pages/employees.html';
+}
+</script>
+</body>
+</html>

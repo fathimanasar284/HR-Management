@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payroll</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <h1>Your Payslip</h1>
+    <div id="payslip"></div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('hr_user'));
+        if (!user) window.location.href = "login.html";
+
+        async function loadPayroll() {
+            const res = await fetch(`/api/payroll/${user.employeeId}`);
+            if (!res.ok) return alert("Failed to load payroll data");
+            const payrolls = await res.json();
+            document.getElementById('payslip').innerHTML = payrolls.map(p => 
+                `<p>Month: ${p.month}, Year: ${p.year}, Salary: ${p.amount}</p>`
+            ).join('');
+        }
+
+        loadPayroll();
+    </script>
+</body>
+</html>

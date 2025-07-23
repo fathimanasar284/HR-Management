@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply Leave</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <h1>Apply Leave</h1>
+    <form id="leaveForm">
+        <label>From Date: <input type="date" name="startDate" required></label><br>
+        <label>To Date: <input type="date" name="endDate" required></label><br>
+        <label>Reason: <textarea name="reason" required></textarea></label><br>
+        <button type="submit">Apply</button>
+    </form>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('hr_user'));
+        if (!user) window.location.href = "login.html";
+
+        document.getElementById('leaveForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const payload = {
+                employeeId: user.employeeId,
+                startDate: formData.get('startDate'),
+                endDate: formData.get('endDate'),
+                reason: formData.get('reason')
+            };
+            const res = await fetch('/api/leaves/apply', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            alert(res.ok ? 'Leave Applied!' : 'Failed to Apply Leave');
+        };
+    </script>
+</body>
+</html>

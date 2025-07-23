@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Employees</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<h1>Employees</h1>
+
+<div id="actions">
+  <button id="addBtn" style="display:none;">Add Employee</button>
+</div>
+
+<table id="empTable" border="1" cellpadding="6">
+  <thead>
+    <tr>
+      <th>ID</th><th>Name</th><th>Email</th><th>Dept</th><th>Salary</th><th>Manager</th><th>Actions</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script src="/js/hr-auth.js"></script>
+<script>
+const user = HR.requireLogin();
+
+// Show Add button only for ADMIN or MANAGER
+if (HR.hasRole('ADMIN','MANAGER')) {
+  document.getElementById('addBtn').style.display = 'inline-block';
+  document.getElementById('addBtn').onclick = () => location.href='/pages/add-employee.html';
+}
+
+async function loadEmployees() {
+  const res = await fetch('/api/employees');
+  if (!res.ok) { alert('Failed to load employees'); return; }
+  const data = await res.json();
+  renderTable(data);
+}
+
+function renderTable(rows) {
+  const tbody = document.querySelector('#empTable tbody');
+  tbody.innerHTML = '';
+  rows.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${r.id ?? ''}</td>
+      <td>${r.name ?? ''}</td>
+      <td>${r.email ?? ''}</td>
+      <td>${r.department ?? ''}</td>
+      <td>${r.baseSalary ?? ''}</td>
+      <td>${r.managerId ?? ''}</td>
+      <td class="actions"></td>
+    `;
+    const actTd = tr.querySelector('.actions');
+
+    // Only ADMIN/MANAGER can edit/delete
+    if (HR.hasRole('ADMIN','MANAGER')) {
+      const editBtn = document.createElement('button');
+      editBtn.textContent = 'Edit';
+      editBtn.onclick = () => location.href = `/pages/add-employee.html?id=${r.id}`;
+
+      const delBtn = document.createElement('button');
+      delBtn.textContent = 'Delete';
+      delBtn.onclick = () => deleteEmployee(r.id);
+
+      actTd.appendChild(editBtn);
+      actTd.appendChild(delBtn);
+    } else {
+      actTd.textContent = '-';
+    }
+
+    tbody.appendChild(tr);
+  });
+}
+
+async function deleteEmployee(id) {
+  if (!confirm('Delete employee #' + id + '?')) return;
+  const res = await fetch(`/api/employees/${id}`, { method:'DELETE' });
+  if (res.ok) {
+    alert('Deleted.');
+    loadEmployees();
+  } else {
+    alert('Delete failed.');
+  }
+}
+
+loadEmployees();
+</script>
+</body>
+</html>

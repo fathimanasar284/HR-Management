@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performance Goals</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <h1>Performance Goals</h1>
+    <div id="goals"></div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('hr_user'));
+        if (!user) window.location.href = "login.html";
+
+        async function loadGoals() {
+            const res = await fetch(`/api/performance/goals/${user.employeeId}`);
+            const goals = await res.json();
+            document.getElementById('goals').innerHTML = goals.map(g => `<p>${g.goalDescription} - Status: ${g.status}</p>`).join('');
+        }
+
+        loadGoals();
+    </script>
+</body>
+</html>
